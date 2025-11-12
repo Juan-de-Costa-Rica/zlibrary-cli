@@ -104,6 +104,14 @@ zlib-agent (main CLI)
 - Network errors = try `auto-domain` first
 - Import fails = wait up to 60s before reporting
 
+## Claude Code Integration
+
+Want to use this with Claude Code? See **[CLAUDE_CODE_INTEGRATION.md](CLAUDE_CODE_INTEGRATION.md)** for:
+- Complete skill setup instructions
+- Quality criteria and decision-making logic
+- Error handling workflows
+- Example usage sessions
+
 ## License
 
 MIT
