@@ -1,0 +1,249 @@
+#!/bin/bash
+# zlib-agent - Main CLI entry point for Z-Library agent
+
+set -eo pipefail
+
+# Version
+VERSION="1.0.0"
+
+# Get script directory
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# Libraries are installed in ~/.zlib-agent/lib
+LIB_DIR="${ZLIB_AGENT_LIB:-$HOME/.zlib-agent/lib}"
+
+# Source all modules
+source "$LIB_DIR/config.sh"
+source "$LIB_DIR/http.sh"
+source "$LIB_DIR/json.sh"
+source "$LIB_DIR/validate.sh"
+source "$LIB_DIR/domains.sh"
+source "$LIB_DIR/auth.sh"
+source "$LIB_DIR/search.sh"
+source "$LIB_DIR/download.sh"
+
+# Global flags
+export QUIET=false
+export OUTPUT_JSON=false
+export DEBUG=false
+
+# Show usage
+usage() {
+    cat << EOF
+Z-Library Agent v${VERSION}
+AI-agent-optimized Z-Library client
+
+Usage: zlib-agent <command> [options]
+
+Commands:
+  auth <email> <password>     Authenticate and store tokens
+  status                      Check authentication status
+  logout                      Clear stored credentials
+  search <query>              Search for books
+  download <id> <hash> <out>  Download a book
+  import <file>               Import book to Calibre-Web
+  domains                     List available Z-Library domains
+  test-domain <url>           Test if a domain is working
+  set-domain <url>            Set Z-Library domain
+  auto-domain                 Auto-discover and set working domain
+  version                     Show version
+  help                        Show this help
+
+Global Options:
+  --quiet                     Minimal output (exit codes only)
+  --json                      JSON output (for search)
+  --debug                     Verbose debug output
+  --config <path>             Config file path (default: ~/.zlib-agent.conf)
+
+Search Options:
+  --format <epub|mobi>        Filter by format (can specify multiple)
+  --lang <en|es|fr|de|...>    Filter by language (default: en)
+  --year-from <YYYY>          Filter books from year
+  --year-to <YYYY>            Filter books to year
+  --limit <N>                 Max results (default: 10)
+
+Download Options:
+  --format <epub|mobi>        Specify format
+  --no-validate               Skip validation
+
+Import Options:
+  --verify                    Verify import (wait and check)
+  --timeout <seconds>         Verification timeout (default: 60)
+
+Exit Codes:
+  0   Success
+  1   General error / No results
+  2   Rate limit detected
+  3   Authentication failed / required
+  4   Validation failed
+  5   Network error
+
+Examples:
+  # Authenticate
+  zlib-agent auth your@email.com yourpassword
+
+  # Search for books
+  zlib-agent search "atomic habits" --format epub --lang en
+
+  # Download a book
+  zlib-agent download 17913839 e5da54 atomic-habits.epub
+
+  # Full workflow with JSON output
+  zlib-agent search "atomic habits" --json | jq -r '.books[0] | .id, .hash'
+
+Config File (~/.zlib-agent.conf):
+  ZLIB_USERID=...           Authentication user ID
+  ZLIB_USERKEY=...          Authentication key
+  ZLIB_DOMAIN=...           API domain (default: https://1lib.sk)
+  DOWNLOAD_DIR=...          Download directory (default: /tmp)
+  CALIBRE_INGEST=...        Calibre-Web ingest folder
+
+Documentation:
+  https://github.com/user/zlib-agent
+EOF
+}
+
+# Show version
+show_version() {
+    echo "zlib-agent version $VERSION"
+}
+
+# Main entry point
+main() {
+    if [ $# -eq 0 ]; then
+        usage
+        exit 0
+    fi
+
+    # Parse global options
+    while [ $# -gt 0 ]; do
+        case "$1" in
+            --quiet)
+                export QUIET=true
+                shift
+                ;;
+            --json)
+                export OUTPUT_JSON=true
+                shift
+                ;;
+            --debug)
+                export DEBUG=true
+                shift
+                ;;
+            --config)
+                export ZLIB_CONFIG="$2"
+                shift 2
+                ;;
+            *)
+                # Not a global option, process as command
+                break
+                ;;
+        esac
+    done
+
+    # Get command
+    local command="$1"
+    shift
+
+    case "$command" in
+        auth)
+            if [ $# -lt 2 ]; then
+                echo "Error: auth requires <email> <password>" >&2
+                exit 1
+            fi
+            zlib_auth_login "$1" "$2"
+            exit $?
+            ;;
+
+        status)
+            zlib_auth_status
+            exit $?
+            ;;
+
+        logout)
+            zlib_auth_logout
+            exit $?
+            ;;
+
+        search)
+            if [ $# -lt 1 ]; then
+                echo "Error: search requires <query>" >&2
+                exit 1
+            fi
+            zlib_search "$@"
+            exit $?
+            ;;
+
+        download)
+            if [ $# -lt 3 ]; then
+                echo "Error: download requires <id> <hash> <output>" >&2
+                exit 1
+            fi
+            zlib_download "$@"
+            exit $?
+            ;;
+
+        import)
+            if [ $# -lt 1 ]; then
+                echo "Error: import requires <file>" >&2
+                exit 1
+            fi
+            zlib_import "$@"
+            exit $?
+            ;;
+
+        domains)
+            if [ "$QUIET" != "true" ]; then
+                echo "Discovering Z-Library domains..."
+            fi
+            discover_domains
+            exit $?
+            ;;
+
+        test-domain)
+            if [ $# -lt 1 ]; then
+                echo "Error: test-domain requires <url>" >&2
+                exit 1
+            fi
+            if test_domain "$1"; then
+                echo "Domain is working: $1"
+                exit 0
+            else
+                echo "Domain is not working: $1"
+                exit 1
+            fi
+            ;;
+
+        set-domain)
+            if [ $# -lt 1 ]; then
+                echo "Error: set-domain requires <url>" >&2
+                exit 1
+            fi
+            update_domain "$1"
+            exit $?
+            ;;
+
+        auto-domain)
+            auto_update_domain
+            exit $?
+            ;;
+
+        version)
+            show_version
+            exit 0
+            ;;
+
+        help|--help|-h)
+            usage
+            exit 0
+            ;;
+
+        *)
+            echo "Error: Unknown command: $command" >&2
+            echo "Run 'zlib-agent help' for usage" >&2
+            exit 1
+            ;;
+    esac
+}
+
+# Run main with all arguments
+main "$@"
