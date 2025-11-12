@@ -1,5 +1,5 @@
 #!/bin/bash
-# zlib-agent - Main CLI entry point for Z-Library agent
+# zlibrary-cli - Main CLI entry point for Z-Library
 
 set -eo pipefail
 
@@ -8,8 +8,8 @@ VERSION="1.0.0"
 
 # Get script directory
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-# Libraries are installed in ~/.zlib-agent/lib
-LIB_DIR="${ZLIB_AGENT_LIB:-$HOME/.zlib-agent/lib}"
+# Libraries are installed in ~/.zlibrary-cli/lib
+LIB_DIR="${ZLIBRARY_CLI_LIB:-$HOME/.zlibrary-cli/lib}"
 
 # Source all modules
 source "$LIB_DIR/config.sh"
@@ -29,10 +29,10 @@ export DEBUG=false
 # Show usage
 usage() {
     cat << EOF
-Z-Library Agent v${VERSION}
+Z-Library CLI v${VERSION}
 AI-agent-optimized Z-Library client
 
-Usage: zlib-agent <command> [options]
+Usage: zlibrary-cli <command> [options]
 
 Commands:
   auth <email> <password>     Authenticate and store tokens

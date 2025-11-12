@@ -9,40 +9,40 @@ CLI tool for AI agents (like Claude Code) to search and download English EPUB/MO
 ## Installation
 
 ```bash
-# Clone to ~/.zlib-agent
-git clone <repo-url> ~/.zlib-agent
+# Clone to ~/.zlibrary-cli
+git clone <repo-url> ~/.zlibrary-cli
 
 # Link executable to PATH
-ln -s ~/.zlib-agent/zlib-agent ~/.local/bin/zlib-agent
+ln -s ~/.zlibrary-cli/zlibrary-cli ~/.local/bin/zlibrary-cli
 
 # Verify
-zlib-agent version
+zlibrary-cli version
 ```
 
 ## Authentication
 
 ```bash
 # One-time setup
-zlib-agent auth <email> <password>
+zlibrary-cli auth <email> <password>
 
 # Check status
-zlib-agent status
+zlibrary-cli status
 ```
 
-Tokens stored in `~/.zlib-agent/.tokens` (gitignored).
+Tokens stored in `~/.zlibrary-cli/.tokens` (gitignored).
 
 ## Usage
 
 ### Search
 ```bash
-zlib-agent search "atomic habits" --limit 10
+zlibrary-cli search "atomic habits" --limit 10
 ```
 
 Returns: Numbered list with ID, Hash, Title, Author, Year, Format, Size
 
 ### Download
 ```bash
-zlib-agent download <id> <hash> /tmp/output.epub --format epub
+zlibrary-cli download <id> <hash> /tmp/output.epub --format epub
 ```
 
 Exit codes:
@@ -55,19 +55,19 @@ Exit codes:
 ### Domain Management
 ```bash
 # Auto-discover working domain
-zlib-agent auto-domain
+zlibrary-cli auto-domain
 
 # Test specific domain
-zlib-agent test-domain https://z-library.sk
+zlibrary-cli test-domain https://z-library.sk
 
 # Set domain manually
-zlib-agent set-domain https://z-library.sk
+zlibrary-cli set-domain https://z-library.sk
 ```
 
 ## Architecture
 
 ```
-zlib-agent (main CLI)
+zlibrary-cli (main CLI)
 ├── lib/auth.sh      - Authentication & token management  
 ├── lib/config.sh    - Configuration loading
 ├── lib/domains.sh   - Domain discovery (Reddit wiki, Wikipedia)

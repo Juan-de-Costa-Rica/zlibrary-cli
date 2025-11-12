@@ -1,16 +1,16 @@
 # Claude Code Integration Guide
 
-This library is designed for AI agents like Claude Code. This guide shows how to set up a Claude Code skill that uses `zlib-agent`.
+This library is designed for AI agents like Claude Code. This guide shows how to set up a Claude Code skill that uses `zlibrary-cli`.
 
 ## Architecture Options
 
 ### Option 1: Remote Server (Recommended)
-Install `zlib-agent` on a remote server and access via SSH.
+Install `zlibrary-cli` on a remote server and access via SSH.
 
 **Why?** Keeps your local machine clean, centralizes downloads, can run 24/7.
 
 ### Option 2: Local Installation
-Install `zlib-agent` on the same machine running Claude Code.
+Install `zlibrary-cli` on the same machine running Claude Code.
 
 **Why?** Simpler setup, no SSH needed, good for testing.
 
@@ -20,16 +20,16 @@ Install `zlib-agent` on the same machine running Claude Code.
 
 ```bash
 # Clone the repository
-git clone https://github.com/Juan-de-Costa-Rica/zlib-agent.git ~/.zlib-agent
+git clone https://github.com/Juan-de-Costa-Rica/zlibrary-cli.git ~/.zlibrary-cli
 
 # Link executable to PATH
-ln -s ~/.zlib-agent/zlib-agent ~/.local/bin/zlib-agent
+ln -s ~/.zlibrary-cli/zlibrary-cli ~/.local/bin/zlibrary-cli
 
 # Authenticate (one-time)
-zlib-agent auth your-email@example.com your-password
+zlibrary-cli auth your-email@example.com your-password
 
 # Test it works
-zlib-agent search "test" --limit 1
+zlibrary-cli search "test" --limit 1
 ```
 
 ### SSH Setup (if using remote server)
@@ -44,7 +44,7 @@ ssh-keygen -t ed25519
 ssh-copy-id user@your-server.com
 
 # Test connection
-ssh user@your-server.com 'zlib-agent status'
+ssh user@your-server.com 'zlibrary-cli status'
 ```
 
 ## Claude Code Skill Setup
@@ -61,11 +61,11 @@ model: sonnet
 
 # Z-Library Ebook Downloader
 
-Download English EPUB/MOBI books from Z-Library using zlib-agent.
+Download English EPUB/MOBI books from Z-Library using zlibrary-cli.
 
 ## Prerequisites
 
-- `zlib-agent` installed and authenticated
+- `zlibrary-cli` installed and authenticated
 - SSH access (if using remote server): `ssh YOUR_SERVER`
 
 ## Workflow
@@ -77,10 +77,10 @@ If user request is vague, use WebSearch to find specific book + author + rating.
 
 ```bash
 # Local installation
-zlib-agent search "QUERY" --limit 10
+zlibrary-cli search "QUERY" --limit 10
 
 # Remote server (replace YOUR_SERVER)
-ssh YOUR_SERVER 'zlib-agent search "QUERY" --limit 10'
+ssh YOUR_SERVER 'zlibrary-cli search "QUERY" --limit 10'
 ```
 
 Returns: Numbered list with ID, Hash, Title, Author, Year, Format, Size
@@ -107,10 +107,10 @@ Returns: Numbered list with ID, Hash, Title, Author, Year, Format, Size
 
 ```bash
 # Local
-zlib-agent download ID HASH /tmp/book.epub --format epub
+zlibrary-cli download ID HASH /tmp/book.epub --format epub
 
 # Remote
-ssh YOUR_SERVER 'zlib-agent download ID HASH /tmp/book.epub --format epub'
+ssh YOUR_SERVER 'zlibrary-cli download ID HASH /tmp/book.epub --format epub'
 ```
 
 **Exit codes**:
@@ -118,7 +118,7 @@ ssh YOUR_SERVER 'zlib-agent download ID HASH /tmp/book.epub --format epub'
 - 2: Rate limit (10 books/day) - tell user to wait 24h
 - 3: Not authenticated - check credentials
 - 4: Validation failed - try different result
-- 5: Network error - try `zlib-agent auto-domain`
+- 5: Network error - try `zlibrary-cli auto-domain`
 
 ### Step 5: Transfer & Report
 
@@ -138,7 +138,7 @@ Tell user: "Hit Z-Library rate limit (10 books/day). Wait 24 hours."
 ### Network Errors
 Try auto-domain discovery first:
 ```bash
-zlib-agent auto-domain  # or: ssh YOUR_SERVER 'zlib-agent auto-domain'
+zlibrary-cli auto-domain  # or: ssh YOUR_SERVER 'zlibrary-cli auto-domain'
 ```
 
 ### No Results
@@ -151,13 +151,13 @@ zlib-agent auto-domain  # or: ssh YOUR_SERVER 'zlib-agent auto-domain'
 **User**: "Download Atomic Habits"
 
 **Actions**:
-1. Search: `zlib-agent search "atomic habits james clear" --limit 10`
+1. Search: `zlibrary-cli search "atomic habits james clear" --limit 10`
 2. Results show 3 options:
    - #1: MOBI, 234 KB (too small - red flag)
    - #2: EPUB, 2.3 MB, 2018 (good size, EPUB, correct year)
    - #3: EPUB, 150 KB (too small - red flag)
 3. Select #2 (best quality)
-4. Download: `zlib-agent download 17913839 722941 /tmp/atomic-habits.epub --format epub`
+4. Download: `zlibrary-cli download 17913839 722941 /tmp/atomic-habits.epub --format epub`
 5. Report: "Downloaded 'Atomic Habits' by James Clear (2018, EPUB, 2.3 MB). Selected #2 for best file size and EPUB format."
 
 ## Customization
@@ -196,17 +196,17 @@ If you have multiple servers, you can:
 
 ## Troubleshooting
 
-**"command not found: zlib-agent"**
-- Check it's in PATH: `which zlib-agent`
-- Or use full path: `~/.zlib-agent/zlib-agent`
+**"command not found: zlibrary-cli"**
+- Check it's in PATH: `which zlibrary-cli`
+- Or use full path: `~/.zlibrary-cli/zlibrary-cli`
 
 **"Not authenticated"**
-- Run: `zlib-agent auth email password`
-- Check tokens: `zlib-agent status`
+- Run: `zlibrary-cli auth email password`
+- Check tokens: `zlibrary-cli status`
 
 **Domain issues**
-- Try: `zlib-agent auto-domain`
-- Manually test: `zlib-agent test-domain https://z-library.sk`
+- Try: `zlibrary-cli auto-domain`
+- Manually test: `zlibrary-cli test-domain https://z-library.sk`
 
 ## License
 
