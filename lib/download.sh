@@ -10,7 +10,7 @@ source "$SCRIPT_DIR/validate.sh"
 
 # Default download settings
 DOWNLOAD_DIR="${DOWNLOAD_DIR:-/tmp}"
-DOWNLOAD_DOMAIN="${ZLIB_DOMAIN:-https://z-library.sk}"
+# DOWNLOAD_DOMAIN will be set after config_load (see below)
 
 # Download a book
 # Usage: zlib_download <id> <hash> <output_path> [--format epub|mobi] [--no-validate]
@@ -76,6 +76,9 @@ zlib_download() {
         echo "Error: Not authenticated. Run: zlib-agent auth <email> <password>" >&2
         return 3
     fi
+
+    # Set download domain from config (must be after config_load)
+    DOWNLOAD_DOMAIN="${ZLIB_DOMAIN:-https://z-library.sk}"
 
     [ "$DEBUG" = "true" ] && echo "Downloading book $book_id..." >&2
 
