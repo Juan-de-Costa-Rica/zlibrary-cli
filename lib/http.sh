@@ -174,7 +174,14 @@ http_get_auth() {
     local userkey="$3"
     shift 3
 
-    local cookies="remix_userid=$userid; remix_userkey=$userkey"
+    # Use full browser cookies if available (includes c_token for JS challenge bypass)
+    # Otherwise fall back to just authentication cookies
+    local cookies
+    if [ -n "$ZLIB_BROWSER_COOKIES" ]; then
+        cookies="$ZLIB_BROWSER_COOKIES"
+    else
+        cookies="remix_userid=$userid; remix_userkey=$userkey"
+    fi
 
     http_get "$url" -H "Cookie: $cookies" "$@"
 }

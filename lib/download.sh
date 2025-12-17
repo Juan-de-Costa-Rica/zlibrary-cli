@@ -117,8 +117,13 @@ zlib_download() {
         echo "  URL: $download_url"
     fi
 
-    # Prepare cookies
-    local cookies="remix_userid=$ZLIB_USERID; remix_userkey=$ZLIB_USERKEY"
+    # Prepare cookies - use browser cookies if available (includes c_token)
+    local cookies
+    if [ -n "$ZLIB_BROWSER_COOKIES" ]; then
+        cookies="$ZLIB_BROWSER_COOKIES"
+    else
+        cookies="remix_userid=$ZLIB_USERID; remix_userkey=$ZLIB_USERKEY"
+    fi
 
     # Download the file
     http_download "$download_url" "$output_path" "$cookies"
